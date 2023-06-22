@@ -15,7 +15,7 @@ func PanicErr(err error) {
 	}
 }
 
-func getFileDetails(uri string) int64 {
+func getFileDetails(uri string) (int64, string) {
 	res, err := http.Head(uri)
 	PanicErr(err)
 	contentLength := res.ContentLength
@@ -24,7 +24,10 @@ func getFileDetails(uri string) int64 {
 	if !ok {
 		panic("Server does not support HTTP Range Requests")
 	}
-	return contentLength
+	slashSplit := strings.Split(uri, "/")
+	lastStringSlash := slashSplit[len(slashSplit)-1]
+	fName := strings.Split(lastStringSlash, "?")[0]
+	return contentLength, fName
 }
 
 func createClient(laddr, uri string) *http.Client {
@@ -45,7 +48,7 @@ func createClient(laddr, uri string) *http.Client {
 	return client
 }
 
-func downloadRange(startBytes, endBytes int64, laddr, uri string) {
+func downloadRange(startBytes, endBytes int64, laddr, uri, fName string) {
 	panic("Not Implemented")
 }
 
@@ -63,7 +66,7 @@ func main() {
 	// split multiple comma seperated local ip addresses
 	laddrs := strings.Split(*laddr, ",")
 	uri := *url
-	contentLength := getFileDetails(uri)
+	contentLength, fName := getFileDetails(uri)
 	interval := math.Floor(float64(contentLength) / float64(len(laddrs)))
 	offset := 0.0
 	for _, laddr := range laddrs {
@@ -71,6 +74,6 @@ func main() {
 		offset += interval
 		endBytes := int64(offset)
 		offset += 1
-		go downloadRange(startBytes, endBytes, laddr, uri)
+		go downloadRange(startBytes, endBytes, laddr, uri, fName)
 	}
 }
