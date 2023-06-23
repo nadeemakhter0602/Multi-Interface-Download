@@ -103,6 +103,7 @@ func main() {
 	offset := 0.0
 	// add count of all goroutines
 	wg.Add(len(laddrs))
+	fmt.Printf("Starting download of file %s of size %d bytes\n", fName, contentLength)
 	for _, laddr := range laddrs {
 		startBytes := int64(offset)
 		offset += interval
@@ -113,4 +114,5 @@ func main() {
 	}
 	// wait for the goroutines to finish execution
 	wg.Wait()
+	fmt.Println("Download complete.")
 }
