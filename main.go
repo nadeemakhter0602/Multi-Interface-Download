@@ -3,12 +3,18 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	"io"
 	"math"
 	"net"
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 )
+
+// create a WaitGroup
+var wg sync.WaitGroup
 
 func PanicErr(err error) {
 	if err != nil {
@@ -50,7 +56,26 @@ func createClient(laddr string) *http.Client {
 }
 
 func downloadRange(startBytes, endBytes int64, laddr, uri string, file *os.File) {
-	panic("Not Implemented")
+	// Schedule call to WaitGroup's Done to tell goroutine is completed
+	defer wg.Done()
+	contentRange := fmt.Sprintf("bytes %d-%d", startBytes, endBytes)
+	client := createClient(laddr)
+	request, err := http.NewRequest("GET", uri, nil)
+	PanicErr(err)
+	request.Header.Set("Content-Range", contentRange)
+	response, err := client.Do(request)
+	PanicErr(err)
+	responseReader := response.Body
+	defer responseReader.Close()
+	buffer := make([]byte, 64)
+	file.Seek(startBytes, io.SeekStart)
+	for {
+		bytesRead, err := responseReader.Read(buffer)
+		file.Write(buffer[:bytesRead])
+		if err == io.EOF {
+			break
+		}
+	}
 }
 
 func main() {
@@ -73,11 +98,16 @@ func main() {
 	defer file.Close()
 	interval := math.Floor(float64(contentLength) / float64(len(laddrs)))
 	offset := 0.0
+	// add count of all goroutines
+	wg.Add(len(laddrs))
 	for _, laddr := range laddrs {
 		startBytes := int64(offset)
 		offset += interval
 		endBytes := int64(offset)
 		offset += 1
+		// assign a goroutine for each interface
 		go downloadRange(startBytes, endBytes, laddr, uri, file)
 	}
+	// wait for the goroutines to finish execution
+	wg.Wait()
 }
