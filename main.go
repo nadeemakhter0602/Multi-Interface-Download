@@ -58,11 +58,11 @@ func createClient(laddr string) *http.Client {
 func downloadRange(startBytes, endBytes int64, laddr, uri string, file *os.File) {
 	// Schedule call to WaitGroup's Done to tell goroutine is completed
 	defer wg.Done()
-	contentRange := fmt.Sprintf("bytes %d-%d", startBytes, endBytes)
+	contentRange := fmt.Sprintf("bytes=%d-%d", startBytes, endBytes)
 	client := createClient(laddr)
 	request, err := http.NewRequest("GET", uri, nil)
 	PanicErr(err)
-	request.Header.Set("Content-Range", contentRange)
+	request.Header.Set("Range", contentRange)
 	response, err := client.Do(request)
 	PanicErr(err)
 	responseReader := response.Body
