@@ -30,7 +30,7 @@ func getFileDetails(uri string) (int64, string) {
 	return contentLength, fName
 }
 
-func createClient(laddr, uri string) *http.Client {
+func createClient(laddr string) *http.Client {
 	addr, err := net.ResolveTCPAddr("tcp", laddr+":0")
 	PanicErr(err)
 	// create dialer
