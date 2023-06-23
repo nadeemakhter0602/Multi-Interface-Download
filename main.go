@@ -6,6 +6,7 @@ import (
 	"math"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -48,7 +49,7 @@ func createClient(laddr string) *http.Client {
 	return client
 }
 
-func downloadRange(startBytes, endBytes int64, laddr, uri, fName string) {
+func downloadRange(startBytes, endBytes int64, laddr, uri string, file *os.File) {
 	panic("Not Implemented")
 }
 
@@ -67,6 +68,9 @@ func main() {
 	laddrs := strings.Split(*laddr, ",")
 	uri := *url
 	contentLength, fName := getFileDetails(uri)
+	file, err := os.Create(fName)
+	PanicErr(err)
+	defer file.Close()
 	interval := math.Floor(float64(contentLength) / float64(len(laddrs)))
 	offset := 0.0
 	for _, laddr := range laddrs {
@@ -74,6 +78,6 @@ func main() {
 		offset += interval
 		endBytes := int64(offset)
 		offset += 1
-		go downloadRange(startBytes, endBytes, laddr, uri, fName)
+		go downloadRange(startBytes, endBytes, laddr, uri, file)
 	}
 }
