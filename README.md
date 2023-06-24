@@ -6,7 +6,7 @@ It consists of a simple program which takes multiple comma-seperated local IP ad
 
 It then uses each interface to get a seperate range of the file using [HTTP Range Requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests), and appropriately writes the data to the file in 64 byte chunks.
 
-The Local IP address(es) of the interface(s) used to download the file can be retrieved by running `ipconfig`. We can use multiple different interfaces, e.g. An Ethernet connection and a seperate WiFi connection, etc.
+The Local IP address(es) of the interface(s) used to download the file can be retrieved by running `ipconfig`. We can use multiple different interfaces, e.g. an Ethernet connection and a seperate WiFi connection, etc.
 
 ## Example
 
