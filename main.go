@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 )
 
 // create a WaitGroup
@@ -99,20 +100,21 @@ func main() {
 	file, err := os.Create(fName)
 	PanicErr(err)
 	defer file.Close()
-	interval := math.Floor(float64(contentLength) / float64(len(laddrs)))
+	interval := math.Ceil(float64(contentLength) / float64(len(laddrs)))
 	offset := 0.0
 	// add count of all goroutines
 	wg.Add(len(laddrs))
+	start := time.Now()
 	fmt.Printf("Starting download of file %s of size %d bytes\n", fName, contentLength)
 	for _, laddr := range laddrs {
 		startBytes := int64(offset)
 		offset += interval
-		endBytes := int64(offset)
+		endBytes := int64(math.Min(offset, float64(contentLength-1)))
 		offset += 1
 		// assign a goroutine for each interface
 		go downloadRange(startBytes, endBytes, laddr, uri, file)
 	}
 	// wait for the goroutines to finish execution
 	wg.Wait()
-	fmt.Println("Download complete.")
+	fmt.Printf("Download complete in %s\n", time.Since(start))
 }
