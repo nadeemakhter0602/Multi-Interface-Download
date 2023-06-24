@@ -56,7 +56,7 @@ func createClient(laddr string) *http.Client {
 	return client
 }
 
-func downloadRange(startBytes, endBytes int64, laddr, uri string, file *os.File) {
+func downloadRange(startBytes, endBytes int64, laddr, uri string, file *os.File, ch chan int) {
 	// Schedule call to WaitGroup's Done to tell goroutine is completed
 	defer wg.Done()
 	contentRange := fmt.Sprintf("bytes=%d-%d", startBytes, endBytes)
@@ -76,6 +76,7 @@ func downloadRange(startBytes, endBytes int64, laddr, uri string, file *os.File)
 		bytesRead, readErr := responseReader.Read(buffer)
 		bytesWritten, writeErr := file.WriteAt(buffer[:bytesRead], offset)
 		PanicErr(writeErr)
+		ch <- bytesWritten
 		offset += int64(bytesWritten)
 		if readErr == io.EOF {
 			break
@@ -107,6 +108,7 @@ func main() {
 	// add count of all goroutines
 	wg.Add(len(laddrs))
 	start := time.Now()
+	ch := make(chan int)
 	fmt.Printf("Starting download of file %s of size %d bytes\n", fName, contentLength)
 	for _, laddr := range laddrs {
 		startBytes := int64(offset)
@@ -114,9 +116,17 @@ func main() {
 		endBytes := int64(math.Min(offset, float64(contentLength-1)))
 		offset += 1
 		// assign a goroutine for each interface
-		go downloadRange(startBytes, endBytes, laddr, uri, file)
+		go downloadRange(startBytes, endBytes, laddr, uri, file, ch)
+	}
+	totalBytesWritten := 0.0
+	fSize := float64(contentLength)
+	for totalBytesWritten < fSize {
+		bytesWritten := <-ch
+		totalBytesWritten += float64(bytesWritten)
+		scale := (totalBytesWritten / fSize) * 100
+		fmt.Printf("[%.2f/100.00]\r", scale)
 	}
 	// wait for the goroutines to finish execution
 	wg.Wait()
-	fmt.Printf("Download complete in %s\n", time.Since(start))
+	fmt.Printf("\nDownload complete in %s\n", time.Since(start))
 }
