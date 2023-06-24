@@ -15,5 +15,6 @@ Downloading Arch Linux using 2 different interfaces (IP addresses of the interfa
 ```
 ~$ go run main.go -i XXX.XXX.XXX.XXX,XXX.XXX.XXX.XXX -u https://geo.mirror.pkgbuild.com/iso/2023.06.01/archlinux-x86_64.iso
 Starting download of file archlinux-x86_64.iso of size 828715008 bytes
-Download complete in 1m23.2096731s
+[100.00/100.00]
+Download complete in 4m21.6296483s
 ```
