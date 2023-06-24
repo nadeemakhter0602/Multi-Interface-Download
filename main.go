@@ -70,15 +70,17 @@ func downloadRange(startBytes, endBytes int64, laddr, uri string, file *os.File)
 	defer responseReader.Close()
 	// create a 64 byte buffer
 	buffer := make([]byte, 64)
-	// seek file at start of range
-	file.Seek(startBytes, io.SeekStart)
+	offset := startBytes
 	// write to file in 64 byte chunks
 	for {
-		bytesRead, err := responseReader.Read(buffer)
-		file.Write(buffer[:bytesRead])
-		if err == io.EOF {
+		bytesRead, readErr := responseReader.Read(buffer)
+		bytesWritten, writeErr := file.WriteAt(buffer[:bytesRead], offset)
+		PanicErr(writeErr)
+		offset += int64(bytesWritten)
+		if readErr == io.EOF {
 			break
 		}
+		PanicErr(readErr)
 	}
 }
 
