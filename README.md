@@ -1,6 +1,6 @@
 # Multi-Interface-Download
 
-A prototype for distributed downloading of files over http across multiple interfaces.
+A simple program for distributed downloading of files over http across multiple interfaces.
 
 It consists of a simple program which takes multiple comma-seperated local IP addresses of interfaces, and the HTTP URL of the file to download. 
 
