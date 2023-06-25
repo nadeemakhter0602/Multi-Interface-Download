@@ -10,12 +10,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"sync"
 	"time"
 )
-
-// create a WaitGroup
-var wg sync.WaitGroup
 
 func PanicErr(err error) {
 	if err != nil {
@@ -57,8 +53,6 @@ func createClient(laddr string) *http.Client {
 }
 
 func downloadRange(startBytes, endBytes int64, laddr, uri string, file *os.File, ch chan int) {
-	// Schedule call to WaitGroup's Done to tell goroutine is completed
-	defer wg.Done()
 	contentRange := fmt.Sprintf("bytes=%d-%d", startBytes, endBytes)
 	client := createClient(laddr)
 	request, err := http.NewRequest("GET", uri, nil)
@@ -105,8 +99,6 @@ func main() {
 	defer file.Close()
 	interval := math.Ceil(float64(contentLength) / float64(len(laddrs)))
 	offset := 0.0
-	// add count of all goroutines
-	wg.Add(len(laddrs))
 	start := time.Now()
 	ch := make(chan int)
 	fmt.Printf("Starting download of file %s of size %d bytes\n", fName, contentLength)
@@ -126,7 +118,5 @@ func main() {
 		scale := (totalBytesWritten / fSize) * 100
 		fmt.Printf("[%.2f/100.00]\r", scale)
 	}
-	// wait for the goroutines to finish execution
-	wg.Wait()
 	fmt.Printf("\nDownload complete in %s\n", time.Since(start))
 }
